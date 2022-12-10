@@ -1,1 +1,0 @@
-cmd_/home/null/shared/attacker/cr0/Module.symvers := sed 's/\.ko$$/\.o/' /home/null/shared/attacker/cr0/modules.order | scripts/mod/modpost -m -a  -o /home/null/shared/attacker/cr0/Module.symvers -e -i Module.symvers   -T -
