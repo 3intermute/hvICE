@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
     };
 
     printf("%s\n\n", logo);
-    printf("ICE: connecting to domain ubuntu-hvm... ");
+    printf("ICE: connecting to domain %s... ", domain_name);
 
     char *domain_name = argv[1];
     if (VMI_FAILURE == vmi_get_access_mode(NULL, (void*) domain_name, VMI_INIT_DOMAINNAME | VMI_INIT_EVENTS, init_data, &mode)) {
