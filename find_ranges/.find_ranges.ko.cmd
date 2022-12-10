@@ -1,1 +1,0 @@
-cmd_/home/null/shared/find_ranges/find_ranges.ko := ld -r -m elf_x86_64 -z noexecstack --build-id=sha1  -T scripts/module.lds -o /home/null/shared/find_ranges/find_ranges.ko /home/null/shared/find_ranges/find_ranges.o /home/null/shared/find_ranges/find_ranges.mod.o;  true
