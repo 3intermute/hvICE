@@ -1,4 +1,4 @@
-obj-m += find_ranges.o
+obj-m += KASLR_spoof.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules

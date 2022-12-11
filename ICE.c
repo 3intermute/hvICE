@@ -64,8 +64,8 @@ event_response_t mem_cb(vmi_instance_t vmi, vmi_event_t *event) {
     return VMI_EVENT_RESPONSE_NONE;
 }
 
-int register_mem_event_range(vmi_instance_t vmi, addr_t GVA_start, addr_t GVA_end, vmi_mem_access_t access_type, void *cb, vmi_event_t *mem_event_ptr) {
-        printf("ICE: registering mem_event on GVA range (%llx -> %llx)\n", GVA_start, GVA_end);
+int register_mem_event_range(vmi_instance_t vmi, addr_t GVA_start, addr_t GVA_end, vmi_mem_access_t access_type, void *cb) {
+        // printf("ICE: registering mem_event on GVA range (%llx -> %llx)\n", GVA_start, GVA_end);
         GVA_start = (GVA_start >> PAGE_SHIFT) << PAGE_SHIFT;
         GVA_end = (GVA_end >> PAGE_SHIFT) << PAGE_SHIFT;
 
@@ -79,12 +79,6 @@ int register_mem_event_range(vmi_instance_t vmi, addr_t GVA_start, addr_t GVA_en
 
         uint64_t n_frames = (GVA_end - GVA_start) / PAGESIZE;
         printf("ICE: range aligned to page boundaries (%llx -> %llx), %lli frames\n", GVA_start, GVA_end, n_frames);
-
-        SETUP_MEM_EVENT(mem_event_ptr, ~0ULL, access_type, cb, true);
-        if (VMI_FAILURE == vmi_register_event(vmi, mem_event_ptr)) {
-            fprintf(stderr, "ICE: register_mem_event_range failed\n");
-            return 1;
-        }
 
         for (uint64_t i = gfn_start; i < gfn_end; i++) {
             if (VMI_FAILURE == vmi_set_mem_event(vmi, i, access_type, 0)) {
@@ -193,9 +187,10 @@ int main(int argc, char **argv) {
     };
 
     printf("%s\n\n", logo);
-    printf("ICE: connecting to domain %s... ", domain_name);
 
     char *domain_name = argv[1];
+    printf("ICE: connecting to domain %s... ", domain_name);
+
     if (VMI_FAILURE == vmi_get_access_mode(NULL, (void*) domain_name, VMI_INIT_DOMAINNAME | VMI_INIT_EVENTS, init_data, &mode)) {
         fprintf(stderr, "\nICE: failed to get access mode\n");
         goto error_exit;
@@ -205,7 +200,8 @@ int main(int argc, char **argv) {
         goto error_exit;
     }
 
-    vmi_init_paging(vmi, 0);
+    page_mode_t page_mode = vmi_init_paging(vmi, 0);
+    printf("ICE: init paging mode %i\n", page_mode);
     printf("done\n");
 
     printf("ICE: pausing vm... ");
@@ -230,6 +226,22 @@ int main(int argc, char **argv) {
     printf("ICE: kernel text end @ GVA %llx\n", kernel_text_end_GVA);
     printf("                     @ GPA %llx\n", kernel_text_end_GPA);
 
+
+    addr_t kernel_rodata_start_GVA;
+    addr_t kernel_rodata_end_GVA;
+    addr_t kernel_rodata_start_GPA;
+    addr_t kernel_rodata_end_GPA;
+
+    vmi_translate_ksym2v(vmi, "__start_rodata", &kernel_rodata_start_GVA);
+    vmi_translate_kv2p(vmi, kernel_text_start_GVA, &kernel_rodata_start_GPA);
+    printf("ICE: kernel rodata start @ GVA %llx\n", kernel_rodata_start_GVA);
+    printf("                         @ GPA %llx\n", kernel_rodata_start_GPA);
+
+    vmi_translate_ksym2v(vmi, "__end_rodata", &kernel_rodata_end_GVA);
+    vmi_translate_kv2p(vmi, kernel_text_end_GVA, &kernel_rodata_end_GPA);
+    printf("ICE: kernel rodata end @ GVA %llx\n", kernel_rodata_end_GVA);
+    printf("                     @ GPA %llx\n", kernel_rodata_end_GPA);
+
     // if (register_singlestep_event(vmi, singlestep_cb, &singlestep_event)
     //     != 0) {
     //     goto error_exit;
@@ -240,7 +252,18 @@ int main(int argc, char **argv) {
     }
 
     mem_event.data = (void *) &singlestep_event;
-    if (register_mem_event_range(vmi, kernel_text_start_GVA, kernel_text_end_GVA, VMI_MEMACCESS_W, mem_cb, &mem_event)
+    SETUP_MEM_EVENT(&mem_event, ~0ULL, VMI_MEMACCESS_W, mem_cb, true);
+    if (VMI_FAILURE == vmi_register_event(vmi, &mem_event)) {
+        fprintf(stderr, "ICE: register_mem_event_range failed\n");
+        return 1;
+    }
+
+    if (register_mem_event_range(vmi, kernel_text_start_GVA, kernel_text_end_GVA, VMI_MEMACCESS_W, mem_cb)
+        != 0) {
+        goto error_exit;
+    }
+
+    if (register_mem_event_range(vmi, kernel_rodata_start_GVA, kernel_rodata_end_GVA, VMI_MEMACCESS_W, mem_cb)
         != 0) {
         goto error_exit;
     }
@@ -251,7 +274,10 @@ int main(int argc, char **argv) {
     }
     printf("ICE: VM resumed\n");
 
-    printf("ICE: EPT write protection set on GVA range (%llx -> %llx), waiting for violations...\n", kernel_text_start_GVA, kernel_text_end_GVA);
+    printf("ICE: EPT write protection set on GVA ranges (%llx -> %llx)\n", kernel_text_start_GVA, kernel_text_end_GVA);
+    printf("ICE:                                        (%llx -> %llx)\n", kernel_rodata_start_GVA, kernel_rodata_end_GVA);
+    printf("ICE: waiting for violations...\n");
+
     while (!interrupted) {
         vmi_events_listen(vmi,500);
     }
