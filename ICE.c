@@ -201,8 +201,8 @@ int main(int argc, char **argv) {
     }
 
     page_mode_t page_mode = vmi_init_paging(vmi, 0);
-    printf("ICE: init paging mode %i\n", page_mode);
     printf("done\n");
+    printf("ICE: init paging mode %i\n", page_mode);
 
     printf("ICE: pausing vm... ");
     if (VMI_FAILURE ==  vmi_pause_vm(vmi)) {

@@ -58,28 +58,35 @@ the above code will execute on an unprotected system but on a system protected w
 
 ``
         ICE: connecting to domain ubuntu-hvm... done
+        ICE: init paging mode 4
         ICE: pausing vm... done
-        ICE: kernel text start @ GVA ffffffffa8400000
-                           @ GPA 56800000
-        ICE: kernel text end @ GVA ffffffffa9402520
-                         @ GPA 57802520
-        ICE: registering mem_event on GVA range (ffffffffa8400000 -> ffffffffa9402520)
-        ICE: range aligned to page boundaries (ffffffffa8400000 -> ffffffffa9402000), 4098 frames
-        ICE: registered mem_event on GVA range (ffffffffa8400000 -> ffffffffa9402000)
+        ICE: kernel text start @ GVA ffffffff9be00000
+                       @ GPA 16a00000
+        ICE: kernel text end @ GVA ffffffff9ce02520
+                     @ GPA 17a02520
+        ICE: kernel rodata start @ GVA ffffffff9d000000
+                         @ GPA 16a00000
+        ICE: kernel rodata end @ GVA ffffffff9da8c000
+                     @ GPA 17a02520
+        ICE: range aligned to page boundaries (ffffffff9be00000 -> ffffffff9ce02000), 4098 frames
+        ICE: registered mem_event on GVA range (ffffffff9be00000 -> ffffffff9ce02000)
+        ICE: range aligned to page boundaries (ffffffff9d000000 -> ffffffff9da8c000), 2700 frames
+        ICE: registered mem_event on GVA range (ffffffff9d000000 -> ffffffff9da8c000)
         ICE: VM resumed
-        ICE: EPT write protection set on GVA range (ffffffffa8400000 -> ffffffffa9402520), waiting for violations...
-        ICE; %RIP GVA ffffffffa91a0bf6 in kernel text, ignoring violation...
-        ICE: !! EPT WRITE VIOLATION @ GFN 56800
-        ICE:                        @ GPA 56800000
-        ICE:                        @ %RIP GVA ffffffffc08be02a
+        ICE: EPT write protection set on GVA ranges (ffffffff9be00000 -> ffffffff9ce02520)
+        ICE:                                        (ffffffff9d000000 -> ffffffff9da8c000)
+        ICE: waiting for violations...
+        ICE: !! EPT WRITE VIOLATION @ GFN 16a00
+        ICE:                        @ GPA 16a00000
+        ICE:                        @ %RIP GVA 7fa8d9e7895f
+        ICE:                          !! %RIP IS NOT IN KERNEL TEXT
         ICE: pausing vm...
 ``
 
 
 todo:
-    - icebreaker: trick libvmi by relocating kernel or modifying kernel symbol table
-        - instead of using System.map, scan memory directly
-    - protect rodata
+    - icebreaker: libvmi brute-forces KASLR offset or uses init_task to calculate it, very easy to spoof
+    - protect rodata (DONE)
     - protect important structures via sub-page write protection
 
 
