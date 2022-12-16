@@ -240,7 +240,7 @@ int main(int argc, char **argv) {
     vmi_translate_ksym2v(vmi, "__end_rodata", &kernel_rodata_end_GVA);
     vmi_translate_kv2p(vmi, kernel_text_end_GVA, &kernel_rodata_end_GPA);
     printf("ICE: kernel rodata end @ GVA %llx\n", kernel_rodata_end_GVA);
-    printf("                     @ GPA %llx\n", kernel_rodata_end_GPA);
+    printf("                       @ GPA %llx\n", kernel_rodata_end_GPA);
 
     // if (register_singlestep_event(vmi, singlestep_cb, &singlestep_event)
     //     != 0) {

@@ -6,7 +6,7 @@
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("wintermute#0440");
 MODULE_DESCRIPTION("overwrite sys_call_table write protect via setting cr0");
-MODULE_VERSION("0.01");
+MODULE_VERSION("0.1");
 
 extern unsigned long __force_order ;
 inline void mywrite_cr0(unsigned long cr0) {

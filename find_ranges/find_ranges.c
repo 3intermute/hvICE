@@ -8,8 +8,8 @@
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("wintermute#0440");
-MODULE_DESCRIPTION("find kernel code start/end");
-MODULE_VERSION("0.01");
+MODULE_DESCRIPTION("find kernel code start/end and libvmi offsets");
+MODULE_VERSION("0.1");
 
 static int __init find_ranges_init(void) {
     printk(KERN_INFO "ICE: kernel module loaded");
