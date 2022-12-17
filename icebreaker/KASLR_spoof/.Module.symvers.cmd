@@ -1,1 +1,0 @@
-cmd_/home/null/shared/icebreaker/KASLR_spoof/Module.symvers := sed 's/\.ko$$/\.o/' /home/null/shared/icebreaker/KASLR_spoof/modules.order | scripts/mod/modpost -m -a  -o /home/null/shared/icebreaker/KASLR_spoof/Module.symvers -e -i Module.symvers   -T -
