@@ -16,12 +16,12 @@
                \:\/  /     \:\/  /     \:\/  /
                 \/__/       \/__/       \/__/
 
-                HVCIce
+                HVice
                 intrusion countermeasure electronics v0.4
 
-HVCIce is a proof of concept implementation of hypervisor enforced code integrity for the linux kernel using xen and libvmi.
+HVice is a proof of concept implementation of hypervisor enforced code integrity for the linux kernel using xen and libvmi.
 it requires no modification to the guest OS.
-HVCIce achieves this via setting an event listening for writes on all pages between _text and _etext, as well as all of kernel rodata,
+HVice achieves this via setting an event listening for writes on all pages between _text and _etext, as well as all of kernel rodata,
 then pausing the VM and logging the violation if an attempted write did not come from within kernel text.
 
 
@@ -82,6 +82,34 @@ the above code will execute on an unprotected system but on a system protected w
         ICE:                          !! %RIP IS NOT IN KERNEL TEXT
         ICE: pausing vm...
 ``
+
+icebreaker:
+libvmi brute forces the KASLR offset by scanning the range of possible offsets and stopping when it finds a mapped address.
+``
+        static status_t get_kaslr_offset_ia32e(vmi_instance_t vmi)
+        {
+            addr_t va, pa;
+            addr_t kernel_text_start = 0xffffffff81000000;
+            addr_t kernel_text_end = kernel_text_start + (1024*1024*1024);
+
+            linux_instance_t linux_instance = vmi->os_data;
+
+            vmi->init_task = linux_instance->init_task_fixed;
+
+            for (va = kernel_text_start; va < kernel_text_end; va += 0x200000) {
+                if ( vmi_translate_kv2p(vmi, va, &pa) == VMI_SUCCESS ) {
+                    linux_instance->kaslr_offset = va - kernel_text_start;
+                    vmi->init_task += linux_instance->kaslr_offset;
+                    dbprint(VMI_DEBUG_MISC, "**calculated KASLR offset in 64-bit mode: 0x%"PRIx64"\n", linux_instance->kaslr_offset);
+                    return VMI_SUCCESS;
+                }
+            }
+            return VMI_FAILURE;
+        }
+``
+
+it is possible to spoof the offset with a kernel module in the guest that maps an address before the real KASLR kernel text start.
+see: icebreaker/KASLR_spoof/KASLR_spoof.c
 
 
 todo:

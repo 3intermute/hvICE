@@ -67,8 +67,6 @@ static int __init icebreaker_init(void)
 
     pgd = pgd_offset(init_mm_ptr, SPOOFED_KERNEL_TEXT_START);
 
-    printk("got here 0\n");
-
     p4d = p4d_alloc_(init_mm_ptr, pgd, SPOOFED_KERNEL_TEXT_START);
     if (!p4d) {
         printk(KERN_INFO "ICEBREAKER: failed to allocate p4d");
@@ -100,7 +98,7 @@ static int __init icebreaker_init(void)
     //     return -ENOMEM;
     // }
 
-    printk("ICEBREAKER: spoofed kernel KASLR offset to %llx, spoofed kernel text start @ %llx", SPOOFED_KASLR_OFFSET, SPOOFED_KERNEL_TEXT_START);
+    printk("ICEBREAKER: spoofed kernel KASLR offset to %llx, spoofed kernel text start @ %llx\n", SPOOFED_KASLR_OFFSET, SPOOFED_KERNEL_TEXT_START);
 
     return 0;
 }
