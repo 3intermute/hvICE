@@ -19,10 +19,11 @@
                 HVice
                 intrusion countermeasure electronics v0.4
 
-HVice is a proof of concept implementation of hypervisor enforced code integrity for the linux kernel using xen and libvmi.
+HVice is a proof of concept implementation of hypervisor enforced code/data integrity for the linux kernel using xen and libvmi.
 it requires no modification to the guest OS.
-HVice achieves this via setting an event listening for writes on all pages between _text and _etext, as well as all of kernel rodata,
+HVice achieves this setting all pages between _text and _etext and all of kernel rodata to not writable in the guests EPT,
 then pausing the VM and logging the violation if an attempted write did not come from within kernel text.
+writes by code within kernel text are ignored to prevent false positives due to kernel self patching.
 
 
 example:
@@ -110,7 +111,31 @@ libvmi brute forces the KASLR offset by scanning the range of possible offsets a
 
 it is possible to spoof the offset with a kernel module in the guest that maps an address before the real KASLR kernel text start.
 see: icebreaker/KASLR_spoof/KASLR_spoof.c
+``
+        pgd = pgd_offset(init_mm_ptr, SPOOFED_KERNEL_TEXT_START);
 
+        p4d = p4d_alloc_(init_mm_ptr, pgd, SPOOFED_KERNEL_TEXT_START);
+        if (!p4d) {
+            return -ENOMEM;
+        }
+
+        pud = pud_alloc_(init_mm_ptr, p4d, SPOOFED_KERNEL_TEXT_START);
+        if (!pud) {
+            return -ENOMEM;
+        }
+
+        pmd = pmd_alloc_(init_mm_ptr, pud, SPOOFED_KERNEL_TEXT_START);
+        if (!pmd) {
+            return -ENOMEM;
+        }
+
+        ptep = pte_offset_map(pmd, SPOOFED_KERNEL_TEXT_START);
+
+        uint64_t dummy_page = vmalloc(PAGE_SIZE);
+
+        pte_t new_pte = pfn_pte(virt_to_phys(dummy_page) >> PAGE_SHIFT, PAGE_KERNEL);
+        set_pte(ptep, new_pte);
+``
 
 todo:
     - icebreaker: libvmi brute-forces KASLR offset or uses init_task to calculate it, very easy to spoof
