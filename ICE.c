@@ -211,8 +211,8 @@ int main(int argc, char **argv) {
     }
     printf("done\n");
 
-    // addr_t kernel_text_start_GVA;
-    // addr_t kernel_text_end_GVA;
+    addr_t kernel_text_start_GVA;
+    addr_t kernel_text_end_GVA;
     addr_t kernel_text_start_GPA;
     addr_t kernel_text_end_GPA;
 
