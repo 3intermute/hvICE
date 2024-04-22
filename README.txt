@@ -19,6 +19,8 @@
                 HVice
                 intrusion countermeasure electronics v0.4
 
+featured on tmp.0ut vol3: https://tmpout.sh/3/
+
 HVice is a proof of concept implementation of hypervisor enforced code/data integrity for the linux kernel using xen and libvmi.
 it requires no modification to the guest OS.
 HVice achieves this setting all pages between _text and _etext and all of kernel rodata to not writable in the guests EPT,
